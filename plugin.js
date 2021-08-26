@@ -1,7 +1,7 @@
 import sharp from "sharp";
 const id = "@virtualAsset";
 
-async function genCode(ctx) {
+async function genCode(isVite, ctx) {
   const base = sharp("kitten.jpeg");
   const data = { webp: {}, jpeg: {} };
   for (const [format, srcs] of Object.entries(data)) {
@@ -16,23 +16,28 @@ async function genCode(ctx) {
         type: "asset",
         source: buffer,
       });
-      srcs[size] = `replaceStartimport.meta.ROLLUP_FILE_URL_${ref}replaceEnd`;
+      srcs[size] = isVite
+        ? `__VITE_ASSET__${ref}__`
+        : `replaceStartimport.meta.ROLLUP_FILE_URL_${ref}replaceEnd`;
     }
   }
-  const code = JSON.stringify(data, null, 2).replace(
-    /"replaceStart(.*?)replaceEnd"/g,
-    "$1"
-  );
-  console.log("\n", code);
+  let code = JSON.stringify(data);
+  if (!isVite)
+    code = code.replace(
+      /"replaceStart(import\.meta\.ROLLUP_FILE_URL_[0-9a-f]+)replaceEnd"/g,
+      "$1"
+    );
   return `export default ${code};`;
 }
 
-export default {
-  name: "test",
-  resolveId(x) {
-    if (x === id) return x;
-  },
-  load(x) {
-    if (x === id) return genCode(this);
-  },
-};
+export default function (isVite) {
+  return {
+    name: "test",
+    resolveId(x) {
+      if (x === id) return x;
+    },
+    load(x) {
+      if (x === id) return genCode(isVite, this);
+    },
+  };
+}
