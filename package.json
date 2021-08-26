@@ -3,9 +3,15 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build-rollup": "rm -rf dist/ && rollup main.js --dir dist -c rollup.config.js && cp index.html dist/",
     "serve": "vite preview"
   },
   "devDependencies": {
+    "rollup": "^2.56.3",
     "vite": "^2.4.2"
-  }
+  },
+  "dependencies": {
+    "sharp": "^0.29.0"
+  },
+  "type": "module"
 }
